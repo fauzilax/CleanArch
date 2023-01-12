@@ -24,11 +24,10 @@ func (bd *bookData) Add(userID int, newBook book.Core) (book.Core, error) {
 	cnv.UserID = uint(userID)
 	err := bd.db.Create(&cnv).Error
 	if err != nil {
-		return book.Core{}, err
+		log.Println("query error", err.Error())
+		return book.Core{}, errors.New("querry error,fail to add item")
 	}
-
 	newBook.ID = cnv.ID
-
 	return newBook, nil
 }
 
@@ -66,17 +65,18 @@ func (bd *bookData) Update(tokenUserID int, bookID int, updatedData book.Core) (
 		return book.Core{}, errors.New("book not found,update fail")
 	}
 	if len(check) == 0 {
-		return book.Core{}, errors.New("you dont have the book")
+		return book.Core{}, errors.New("book not found")
 	}
+
 	cnv := CoreToData(updatedData)
 	qry := bd.db.Where("id = ?", bookID).Updates(&cnv)
 	if qry.RowsAffected <= 0 {
-		log.Println("update book query error : data not found")
-		return book.Core{}, errors.New("not found")
+		log.Println("no book was update")
+		return book.Core{}, errors.New("update fail, server error")
 	}
 	if err := qry.Error; err != nil {
 		log.Println("update book query error :", err.Error())
-		return book.Core{}, err
+		return book.Core{}, errors.New("query error, problem with server")
 	}
 	return DataToCore(cnv), nil
 }
@@ -100,6 +100,7 @@ func (bd *bookData) MyBook(userID int) ([]book.Core, error) {
 
 // Delete implements book.BookData
 func (bd *bookData) Delete(userID int, bookID int) error {
+	//cek kemungkinan apabila user salah menghapus buku milik user lain
 	check := []Books{}
 	err := bd.db.Where("id=? AND user_id=?", bookID, userID).Find(&check).Error
 	if err != nil {
@@ -107,9 +108,8 @@ func (bd *bookData) Delete(userID int, bookID int) error {
 		return errors.New("book not found,fail deleting")
 	}
 	if len(check) == 0 {
-		return errors.New("book not found")
+		return errors.New("no book has delete")
 	}
-
 	qry := bd.db.Unscoped().Delete(&Books{}, bookID) //Hard Delete
 	rowAffect := qry.RowsAffected
 	if rowAffect <= 0 {
@@ -119,7 +119,7 @@ func (bd *bookData) Delete(userID int, bookID int) error {
 	err = qry.Error
 	if err != nil {
 		log.Println("delete query error", err.Error())
-		return errors.New("book cannot delete")
+		return errors.New("server error")
 	}
 	return nil
 }
