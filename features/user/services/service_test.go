@@ -5,6 +5,7 @@ import (
 	"CleanArch/helper"
 	"CleanArch/mocks"
 	"errors"
+	"log"
 	"testing"
 
 	"github.com/golang-jwt/jwt"
@@ -13,8 +14,8 @@ import (
 )
 
 func TestRegister(t *testing.T) {
-	data := mocks.NewUserData(t) // membuat interface data palsu
-	inputData := user.Core{
+	data := mocks.NewUserData(t) // membuat interface data
+	inputDataUser := user.Core{
 		ID:       uint(0),
 		Name:     "fauzi",
 		Email:    "fauzi@gmail.com",
@@ -22,7 +23,7 @@ func TestRegister(t *testing.T) {
 		HP:       "0812345",
 		Password: "123",
 	}
-	resData := user.Core{
+	returnData := user.Core{
 		ID:       uint(1),
 		Name:     "fauzi",
 		Email:    "fauzi@gmail.com",
@@ -31,12 +32,14 @@ func TestRegister(t *testing.T) {
 		Password: "123",
 	}
 	t.Run("Berhasil Register", func(t *testing.T) {
-		data.On("Register", mock.Anything).Return(resData, nil).Once() // On(method , input/parameter) . Return(Output/Return Value) | Once() digunakan untuk memastikan data yang di tes lebih safety tidak memanggil berulang di On().Return() dibawahnya
-		srv := New(data)                                               // ambil data palsu
-		res, err := srv.Register(inputData)                            // Jalankan Register di Services
+		data.On("Register", mock.Anything).Return(returnData, nil).Once() // On(method , input/parameter) . Return(Output/Return Value) | Once() digunakan untuk memastikan data yang di tes lebih safety tidak memanggil berulang di On().Return() dibawahnya
+		srv := New(data)                                                  //ambil data palsu
+		res, err := srv.Register(inputDataUser)                           // Jalankan Register di Services
+		log.Println(res.Password)
 		assert.Nil(t, err)
-		assert.Equal(t, resData.ID, res.ID)
-		assert.Equal(t, resData.Name, res.Name)
+		assert.Equal(t, returnData.ID, res.ID)
+		assert.Equal(t, returnData.Name, res.Name)
+		assert.Equal(t, returnData.Password, res.Password)
 		data.AssertExpectations(t) // memastikan apakah ujicoba berjalan sesuai dengan On().Return()
 	})
 	t.Run("Register Gagal", func(t *testing.T) {
