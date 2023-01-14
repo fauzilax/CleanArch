@@ -17,6 +17,14 @@ jobs:
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }} 
           script: |
-            touch res.text
-            echo "hello from githubaction" >> res.txt
-          
+            cd prj/CleanArch
+            git pull origin main
+            docker stop cleanarch
+            docker rm cleanarch
+            docker rmi ca14
+            docker build -t ca14 .
+            docker run --name cleanarch -p 80:8000 -d -e DBUSER=root -e DBPASS="" -e DBHOST=mysqldb -e DBNAME=dockersql -e DBPORT=3306 -e JWT_KEY="tU645c134n4Rch1t3ctuR3" --link mysqldb ca14
+            
+
+
+
