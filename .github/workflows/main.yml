@@ -37,7 +37,6 @@ jobs:
             docker pull ${{ secrets.DOCKER_USER }}/ca14
             docker stop cleanarch
             docker rm cleanarch
-            docker run --name cleanarch -p 80:8000 -d -e DBUSER=root -e DBPASS="" -e DBHOST=mysqldb -e DBNAME=dockersql -e DBPORT=3306 -
-            touch helloFauzi.text
-            echo "hello from docker and github" >> helloFauzi.txt
+            docker run --name cleanarch -p 80:8000 -d -e DBUSER=root -e DBPASS="" -e DBHOST=mysqldb -e DBNAME=dockersql -e DBPORT=3306 -e JWT_KEY="tU645c134n4Rch1t3ctuR3" --link mysqldb ca14
+
           
