@@ -8,7 +8,23 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-  
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USER }}/ca14:latest
+          
       - name: executing remote ssh commands using password
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -17,14 +33,10 @@ jobs:
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }} 
           script: |
-            cd prj/CleanArch
-            git pull origin main
+            docker rmi ${{ secrets.DOCKER_USER }}/ca14
+            docker pull ${{ secrets.DOCKER_USER }}/ca14
             docker stop cleanarch
             docker rm cleanarch
-            docker rmi ca14
-            docker build -t ca14 .
-            docker run --name cleanarch -p 80:8000 -d -e DBUSER=root -e DBPASS="" -e DBHOST=mysqldb -e DBNAME=dockersql -e DBPORT=3306 -e JWT_KEY="tU645c134n4Rch1t3ctuR3" --link mysqldb ca14
-            
+            docker run --name cleanarch -p 80:8000 -d -e DBUSER=root -e DBPASS="" -e DBHOST=mysqldb -e DBNAME=dockersql -e DBPORT=3306 -e JWT_KEY="tU645c134n4Rch1t3ctuR3" --link mysqldb ${{ secrets.DOCKER_USER }}/ca14
 
-
-
+          
